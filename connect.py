@@ -4,6 +4,7 @@ import requests
 import sys
 import json
 import paho.mqtt.client as mqtt
+from serialThread import SerialCommunication
 
 #thingsboard cloud server
 THINGS_BOARD_HOST = "thingsboard-iot.tk"
@@ -20,20 +21,28 @@ def getDataSerial():
     collect_data['humidity'] = random.randint(0, 100)
     collect_data['winspeed'] = random.randint(0, 100)
 
+
 def on_connect(client, userdata, rc, *extra_params):
     print('Connected with result code ' + str(rc))
     client.subscribe('v1/devices/me/rpc/request/+')
     pass
 
 
-
 def on_message(client, userdata, msg):
+    global serialControl
     # print('Topic: ' + msg.topic + '\nMessage: ' + str(msg.payload))
     try:
         temp_data = json.loads(msg.payload)
         if temp_data['method'] == 'setValueLED':
             client.publish('v1/devices/me/attributes', json.dumps({'valueLED': temp_data['params']}))
             print("Button pressed is: " + str(temp_data['params']))
+
+            #TODO: Add function controll LED ON/OFF
+            if temp_data['params'] == True:
+                data = ""
+            else:
+                data = ""
+            #serialControl.write(data)
     except:
         pass
 
@@ -47,6 +56,12 @@ if __name__ == '__main__':
     client.loop_start()
 
     try:
+        serialControl = SerialCommunication(serialPort="", baudrate=115200, mqttClient=client)
+        serialControl.start()
+    except:
+        print("Cannot open serial port " + serialPort)
+
+    try:
         while True:
             getDataSerial()
             print("Sending data")
@@ -58,3 +73,4 @@ if __name__ == '__main__':
 
     client.loop_stop()
     client.disconnect()
+    serialControl.stop()
