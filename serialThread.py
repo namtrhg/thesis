@@ -3,7 +3,7 @@ from threading import Thread
 import time, re
 
 class SerialCommunication(Thread):
-    def __init__(self, serialport, baudrate=None, bytesize=None, parity=None, stopbits=None, readtimeout=None, writetimeout=None, xonxoff=None, rtscts=None, dsrdtr=None):
+    def __init__(self, serialPort, baudrate, mqttClient):
         Thread.__init__(self)
         self._stopev = False
 
@@ -15,52 +15,8 @@ class SerialCommunication(Thread):
         else:
             self._baudrate = baudrate
 
-        if bytesize is None:
-            self._bytesize = serial.EIGHTBITS
-        else:
-            self._bytesize = bytesize
-
-        if parity is None:
-            self._parity = serial.PARITY_NONE
-        else:
-            self._parity = parity
-
-        if stopbits is None:
-            self._stopbits = serial.STOPBITS_ONE
-        else:
-            self._stopbits = stopbits
-
-        if readtimeout is None:
-            self._readtimeout = 10
-        else:
-            self._readtimeout = readtimeout
-
-        if writetimeout is None:
-            self._writetimeout = 0
-        else:
-            self._writetimeout = writetimeout
-
-        if xonxoff is None:
-            self._xonxoff = False
-        else:
-            self._xonxoff = xonxoff
-
-        if rtscts is None:
-            self._rtscts = False
-        else:
-            self._rtscts = rtscts
-
-        if dsrdtr is None:
-            self._dsrdtr = False
-        else:
-            self._dsrdtr = dsrdtr
-
-        self.sensorIN = None
-        self.sensorOUT = None
-        self.motorState = None
-
+        self.client = mqttClient
         self._serial = serial.Serial(self._serialport, self._baudrate)
-        self._value = 0
 
     @property
     def serialport(self):
@@ -69,41 +25,6 @@ class SerialCommunication(Thread):
     @property
     def baudrate(self):
         return self._baudrate
-
-    @property
-    def bytesize(self):
-        return self._bytesize
-
-    @property
-    def parity(self):
-        return self._parity
-        
-    @property
-    def stopbits(self):
-        return self._stopbits
-
-    @property
-    def readtimeout(self):
-        return self._readtimeout
-
-    @property
-    def writetimeout(self):
-        return self._writetimeout
-
-    @property
-    def xonxoff(self):
-        return self._xonxoff
-
-    @property
-    def rtscts(self):
-        return self._rtscts
-
-    @property
-    def dsrdtr(self):
-        return self._dsrdtr
-
-    def getValue(self):
-        return self._value
 
     def readline(self):
         return self._serial.readline()
@@ -127,7 +48,7 @@ class SerialCommunication(Thread):
         self._stopev = True
 
     def write(self, data):
-        self._serial.write(str.encode(data + '!', 'utf-8'))
+        self._serial.write(str.encode(data, 'utf-8'))
 
     def inWaiting(self):
         self._serial.inWaiting()
@@ -137,12 +58,6 @@ class SerialCommunication(Thread):
 
     def flushOutput(self):
         self._serial.flushOutput()
-
-    def setNodes(self, sensorIN, sensorOUT, motorState, stationState):
-        self.sensorIN = sensorIN
-        self.sensorOUT = sensorOUT
-        self.motorState = motorState
-        self.stationState = stationState
 
     def doRead(self,term):
         matcher = re.compile(term)
@@ -160,42 +75,21 @@ class SerialCommunication(Thread):
         
         self._serial.flushInput()
         self._serial.flushOutput()
+        
+        _data = {'temperature': 0, 'humidity': 0, 'winspeed': 0}
 
         while not self._stopev:
-            v = str(self.doRead(b'!'), 'utf-8')
-            # self._value = v
-            if v.find("MT;0;RUN") >= 0:
-                if not self.motorState is None:
-                    self.motorState.set_value("RUNNING")
-                    self.write("#OK")
-            elif v.find("MT;0;STOP") >= 0:
-                if not self.motorState is None:
-                    self.motorState.set_value("STOPPING")
-                    self.write("#OK")
-            elif v.find("SS;0;0") >= 0:
-                if not self.sensorIN is None:
-                    self.sensorIN.set_value(True)
-                    self.write("#OK")
-            elif v.find("SS;0;1") >= 0:
-                if not self.sensorIN is None:
-                    self.sensorIN.set_value(False)
-                    self.write("#OK")
-            elif v.find("SS;1;0") >= 0:
-                if not self.sensorOUT is None:
-                    self.sensorOUT.set_value(True)
-                    self.write("#OK")
-            elif v.find("SS;1;1") >= 0:
-                if not self.sensorOUT is None:
-                    self.sensorOUT.set_value(False)      
-                    self.write("#OK")
-            elif v.find("ST;START") >= 0:
-                if not self.stationState is None:
-                    self.stationState.set_value("RUN")
-                    self.write("#OK")
-            elif v.find("ST;PAUSE") >= 0:
-                if not self.stationState is None:
-                    self.stationState.set_value("STOP")
-                    self.write("#OK")
-            v = None
+            _res = str(self.doRead(b'!'), 'utf-8')
+            print(_res)
+            
+            if _res not None:
+                # TODO
+                # Parse data from Microbit
+                _data['temperature'] = random.randint(0, 100)
+                _data['humidity'] = random.randint(0, 100)
+                _data['winspeed'] = random.randint(0, 100)
+
+                # Send data to Thingsboard
+                self.client.publish('v1/devices/me/telemetry', json.dumps(_data), 1)
         
         self.close()
