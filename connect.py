@@ -4,6 +4,7 @@ import requests
 import sys
 import json
 import paho.mqtt.client as mqtt
+import serial
 from serialThread import SerialCommunication
 
 #thingsboard cloud server
@@ -13,14 +14,24 @@ THINGS_BOARD_PORT = 1883
 THINGS_BOARD_INTERVAL_KEEP_ALIVE = 60 #second
 
 INTERVAL = 10
-collect_data = {'temperature': 0, 'humidity': 0, 'winspeed': 0}
+collect_data = {'temperature': 0}
+
+# Send a command to the micro:bit and show the response
+def myfunc(action):
+   out = action + "\n"
+   out2 = out.encode('utf_8')
+   ser.write(out2)   
+   return ser.readline().decode('utf-8')
+
+# configure the serial connections (this will differ on your setup)
+ser = serial.Serial(
+    port='COM3',
+    baudrate=115200
+)
 
 def getDataSerial():
     # TODO: get data
-    collect_data['temperature'] = random.randint(0, 100)
-    collect_data['humidity'] = random.randint(0, 100)
-    collect_data['winspeed'] = random.randint(0, 100)
-
+    collect_data['temperature'] = myfunc("T")
 
 def on_connect(client, userdata, rc, *extra_params):
     print('Connected with result code ' + str(rc))
@@ -55,11 +66,11 @@ if __name__ == '__main__':
     client.connect(THINGS_BOARD_HOST, THINGS_BOARD_PORT, THINGS_BOARD_INTERVAL_KEEP_ALIVE)
     client.loop_start()
 
-    try:
-        serialControl = SerialCommunication(serialPort="", baudrate=115200, mqttClient=client)
-        serialControl.start()
-    except:
-        print("Cannot open serial port " + serialPort)
+    # try:
+    #     serialControl = SerialCommunication(serialPort="", baudrate=115200, mqttClient=client)
+    #     serialControl.start()
+    # except:
+    #     print("Cannot open serial port " + serialPort)
 
     try:
         while True:
@@ -73,4 +84,4 @@ if __name__ == '__main__':
 
     client.loop_stop()
     client.disconnect()
-    serialControl.stop()
+    # serialControl.stop()

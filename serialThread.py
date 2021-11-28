@@ -82,7 +82,7 @@ class SerialCommunication(Thread):
             _res = str(self.doRead(b'!'), 'utf-8')
             print(_res)
             
-            if _res not None:
+            if _res is not None:
                 # TODO
                 # Parse data from Microbit
                 _data['temperature'] = random.randint(0, 100)
