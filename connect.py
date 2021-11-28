@@ -32,7 +32,7 @@ ser = serial.Serial(
 def getDataSerial():
     # TODO: get data
     collect_data['temperature'] = myfunc("T")
-
+ 
 def on_connect(client, userdata, rc, *extra_params):
     print('Connected with result code ' + str(rc))
     client.subscribe('v1/devices/me/rpc/request/+')
@@ -50,9 +50,9 @@ def on_message(client, userdata, msg):
 
             #TODO: Add function controll LED ON/OFF
             if temp_data['params'] == True:
-                data = ""
+                myfunc("1")
             else:
-                data = ""
+                myfunc("0")
             #serialControl.write(data)
     except:
         pass
