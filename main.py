@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         self.browser = QWebEngineView()
  
         # setting default browser url as google
-        self.browser.setUrl(QUrl("http://thingsboard-iot.tk:8080/dashboard/38d7adf0-2089-11ec-ad64-fdd28235c473?publicId=8c510500-1ba0-11ec-86d0-fdd28235c473"))
+        self.browser.setUrl(QUrl("http://thingsboard-iot.tk:9090/dashboard/f4c15b60-4e9c-11ec-8577-077bd963cf86?publicId=902c2da0-51a9-11ec-8577-077bd963cf86"))
  
         # adding action when url get changed
         self.browser.urlChanged.connect(self.update_urlbar)
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
     def navigate_home(self):
  
         # open the google
-        self.browser.setUrl(QUrl("http://thingsboard-iot.tk:8080/dashboard/38d7adf0-2089-11ec-ad64-fdd28235c473?publicId=8c510500-1ba0-11ec-86d0-fdd28235c473"))
+        self.browser.setUrl(QUrl("http://thingsboard-iot.tk:9090/dashboard/f4c15b60-4e9c-11ec-8577-077bd963cf86?publicId=902c2da0-51a9-11ec-8577-077bd963cf86"))
  
     # method called by the line edit when return key is pressed
     def navigate_to_url(self):
