@@ -14,7 +14,7 @@ THINGS_BOARD_PORT = 1883
 THINGS_BOARD_INTERVAL_KEEP_ALIVE = 60  # second
 
 INTERVAL = 10
-collect_data = {'temperature': 0}
+collect_data = {'temperature': 0, 'temperature2': 0}
 
 # Send a command to the micro:bit and show the response
 
