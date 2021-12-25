@@ -7,21 +7,30 @@ import paho.mqtt.client as mqtt
 import serial
 from serialThread import SerialCommunication
 
-#thingsboard cloud server
+# thingsboard cloud server
 THINGS_BOARD_HOST = "thingsboard-iot.tk"
 THINGS_BOARD_ACCESS_TOKEN = "QgrZZHgdaVX03zwbLQNb"
 THINGS_BOARD_PORT = 1883
-THINGS_BOARD_INTERVAL_KEEP_ALIVE = 60 #second
+THINGS_BOARD_INTERVAL_KEEP_ALIVE = 60  # second
 
 INTERVAL = 10
 collect_data = {'temperature': 0}
 
 # Send a command to the micro:bit and show the response
+
+
 def myfunc(action):
    out = action + "\n"
    out2 = out.encode('utf_8')
-   ser.write(out2)   
+   ser.write(out2)
    return ser.readline().decode('utf-8')
+
+def myfunc2(action):
+   out = action + "\n"
+   out2 = out.encode('utf_8')
+   ser2.write(out2)
+   return ser.readline().decode('utf-8')
+
 
 # configure the serial connections (this will differ on your setup)
 ser = serial.Serial(
@@ -29,10 +38,18 @@ ser = serial.Serial(
     baudrate=115200
 )
 
+ser2 = serial.Serial(
+    port='/dev/ttyACM1',
+    baudrate=115200
+)
+
+
 def getDataSerial():
     # TODO: get data
     collect_data['temperature'] = myfunc("T")
- 
+    collect_data['temperature2'] = myfunc2("T")
+
+
 def on_connect(client, userdata, rc, *extra_params):
     print('Connected with result code ' + str(rc))
     client.subscribe('v1/devices/me/rpc/request/+')
@@ -45,15 +62,25 @@ def on_message(client, userdata, msg):
     try:
         temp_data = json.loads(msg.payload)
         if temp_data['method'] == 'setValueLED':
-            client.publish('v1/devices/me/attributes', json.dumps({'valueLED': temp_data['params']}))
+            client.publish('v1/devices/me/attributes',
+                           json.dumps({'valueLED': temp_data['params']}))
             print("Button pressed is: " + str(temp_data['params']))
 
-            #TODO: Add function controll LED ON/OFF
+            # TODO: Add function controll LED ON/OFF
             if temp_data['params'] == True:
                 myfunc("1")
             else:
                 myfunc("0")
-            #serialControl.write(data)
+        elif temp_data['method'] == 'setValueLED2':
+            client.publish('v1/devices/me/attributes', json.dumps({'valueLED2': temp_data['params']}))
+            print("Button pressed is: " + str(temp_data['params']))
+
+            # TODO: Add function controll LED ON/OFF
+            if temp_data['params'] == True:
+                myfunc("1")
+            else:
+                myfunc("0")
+            # serialControl.write(data)
     except:
         pass
 
