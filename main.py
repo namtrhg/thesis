@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
     # method for updating the title of the window
     def update_title(self):
         title = self.browser.page().title()
-        self.setWindowTitle("% s - Geek Browser" % title)
+        self.setWindowTitle("% s - Thesis Application" % title)
  
  
     # method called by the home action

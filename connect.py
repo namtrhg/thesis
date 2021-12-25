@@ -25,7 +25,7 @@ def myfunc(action):
 
 # configure the serial connections (this will differ on your setup)
 ser = serial.Serial(
-    port='COM3',
+    port='/dev/ttyACM0',
     baudrate=115200
 )
 
